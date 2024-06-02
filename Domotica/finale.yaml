@@ -1,0 +1,233 @@
+esphome:
+
+  name: "antifurto"
+
+  # docs: https://esphome.io/components/esphome#esphome-on-boot
+
+  on_boot:
+
+    priority: 250
+
+    then:
+
+      - switch.turn_on: led_verde
+
+      - switch.turn_off: antifurto
+
+
+esp32:
+
+  board: esp32dev
+
+  framework:
+
+    type: arduino
+
+
+# Enable logging
+
+logger:
+
+
+# Enable Home Assistant API
+
+api:
+
+  encryption:
+
+    key: "XJ6LtIzZJgi9TWQapfW3Xa6YZahzoWrODZbP1Ob5wjQ="
+
+  reboot_timeout: 0s
+
+ota:
+
+  password: "a5fa4262fed6aeaad664f009cd8fccc4"
+
+
+# docs: https://esphome.io/components/wifi
+
+wifi:
+
+  ssid: !secret wifi_ssid
+
+  password: !secret wifi_password
+
+
+# docs: https://esphome.io/components/web_server
+
+web_server:
+
+  port: 80
+
+
+##########
+
+
+# docs: https://esphome.io/components/switch/
+
+switch:
+
+  # docs: https://esphome.io/components/switch/gpio
+
+  - name: "Led verde"
+
+    id: led_verde
+
+    platform: gpio
+
+    pin: 18
+
+
+  - name: "Led giallo"
+
+    id: led_giallo
+
+    platform: gpio
+
+    pin: 19
+
+
+  - name: "Led rosso"
+
+    id: led_rosso
+
+    platform: gpio
+
+    pin: 21
+
+
+  # docs: https://esphome.io/components/switch/template
+
+  - name: "Antifurto"
+
+    id: antifurto
+
+    platform: template
+
+    optimistic: True
+
+    on_turn_on:
+
+        then:
+
+          - switch.turn_off: led_verde
+
+          - switch.turn_on: led_giallo
+
+    on_turn_off:
+
+      then:
+
+          - rtttl.stop
+
+          - switch.turn_on: led_verde
+
+          - switch.turn_off: led_giallo
+
+          - switch.turn_off: led_rosso
+
+
+# docs: https://esphome.io/components/binary_sensor/
+
+binary_sensor:
+
+  # docs: https://esphome.io/components/binary_sensor/gpio
+
+  - id: bottone
+
+    platform: gpio
+
+    pin:
+
+      number: 32
+
+      inverted: true
+
+      mode:
+
+        input: true
+
+        pullup: true
+
+    on_multi_click:
+
+      - timing:
+
+          - ON for at least 0.1s
+
+        then:
+
+          - switch.toggle: antifurto
+
+
+# docs: https://esphome.io/components/output/ledc
+
+output:
+
+  - platform: ledc
+
+    id: buzzer_out
+
+    pin:
+
+      number: 16
+
+    channel: 2
+
+
+# docs: https://esphome.io/components/rtttl
+
+rtttl:
+
+  id: buzzer
+
+  output: buzzer_out
+
+
+# docs: https://esphome.io/components/sensor/
+
+sensor:
+
+  # docs: https://esphome.io/components/sensor/ultrasonic
+
+  - name: "Distanza"
+
+    id: distanza
+
+    platform: ultrasonic
+
+    trigger_pin: 4
+
+    echo_pin: 35
+
+    update_interval: 1s
+
+    unit_of_measurement: "m"
+
+    accuracy_decimals: 3
+
+    on_value:
+
+      then:
+
+        # docs: https://esphome.io/guides/automations#if-action
+
+        - if:
+
+            condition:
+
+              and:
+
+                - sensor.in_range:
+
+                    id: distanza
+
+                    below: 0.10
+
+                - switch.is_on: antifurto
+
+            then:
+
+              - switch.turn_on: led_rosso
+
+              - rtttl.play: 'mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6'
