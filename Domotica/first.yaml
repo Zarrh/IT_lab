@@ -1,0 +1,94 @@
+esphome:
+
+  name: "antifurto"
+
+  # docs: https://esphome.io/components/esphome#esphome-on-boot
+
+  on_boot:
+
+    priority: 250
+
+    then:
+
+      - switch.turn_on: led_verde
+
+
+esp32:
+
+  board: esp32dev
+
+  framework:
+
+    type: arduino
+
+
+# Enable logging
+
+logger:
+
+
+# Enable Home Assistant API
+
+api:
+
+  encryption:
+
+    key: "XJ6LtIzZJgi9TWQapfW3Xa6YZahzoWrODZbP1Ob5wjQ="
+
+  reboot_timeout: 0s
+
+ota:
+
+  password: "a5fa4262fed6aeaad664f009cd8fccc4"
+
+
+# docs: https://esphome.io/components/wifi
+
+wifi:
+
+  ssid: !secret wifi_ssid
+
+  password: !secret wifi_password
+
+
+# docs: https://esphome.io/components/web_server
+
+web_server:
+
+  port: 80
+
+
+##########
+
+
+# docs: https://esphome.io/components/switch/
+
+switch:
+
+  # docs: https://esphome.io/components/switch/gpio
+
+  - name: "Led verde"
+
+    id: led_verde
+
+    platform: gpio
+
+    pin: 18
+
+
+  - name: "Led giallo"
+
+    id: led_giallo
+
+    platform: gpio
+
+    pin: 19
+
+
+  - name: "Led rosso"
+
+    id: led_rosso
+
+    platform: gpio
+
+    pin: 21

