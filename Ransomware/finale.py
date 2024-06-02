@@ -64,6 +64,8 @@ def crawl(directory: str) -> list:
     new_targets = []
 
     for root, dirs, files in os.walk(directory, topdown=True):
+        if any(item in root for item in white_list):
+            continue
         print(f"Current directory: {root}")
         print("File:")
         for name in files:
